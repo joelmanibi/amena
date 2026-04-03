@@ -1,0 +1,41 @@
+node_modules/
+.next/
+
+# Fichiers d'environnement sensibles
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
+!.env.example
+
+# Clés et certificats
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+
+# Dumps, sauvegardes et bases locales
+*.sql
+*.dump
+*.bak
+*.backup
+*.sqlite
+*.sqlite3
+*.db
+
+# Archives et fichiers volumineux exportés
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+*.tgz
+
+# Logs et temporaires
+*.log
+tmp/
+temp/
+.cache/

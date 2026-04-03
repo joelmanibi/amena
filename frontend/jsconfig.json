@@ -1,0 +1,15 @@
+
+
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["node"],
+    "lib": ["es2020", "dom", "dom.iterable"]
+  },
+  "typeAcquisition": {
+    "exclude": ["estree", "json-schema"]
+  }
+}

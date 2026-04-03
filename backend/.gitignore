@@ -1,0 +1,48 @@
+node_modules/
+
+# Variables d'environnement sensibles
+.env
+.env.*
+!.env.example
+
+# Logs et fichiers temporaires
+*.log
+logs/
+tmp/
+temp/
+.cache/
+
+# Artefacts de build / couverture
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Exports, uploads et sauvegardes non nécessaires au versioning
+export/
+exports/
+uploads/
+storage/
+reports/
+backups/
+dumps/
+
+# Bases locales / dumps
+*.dump
+*.bak
+*.backup
+*.sqlite
+*.sqlite3
+*.db
+
+# Archives volumineuses générées
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+*.tgz
+
+# Fichiers système
+.DS_Store
+Thumbs.db
