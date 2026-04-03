@@ -1,0 +1,39 @@
+module.exports = {
+  apps: [
+    {
+      name: 'amena-backend',
+      cwd: './backend',
+      script: 'npm',
+      args: 'start',
+      exec_interpreter: 'none',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      time: true,
+      max_restarts: 10,
+      max_memory_restart: '512M',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 5000,
+      },
+    },
+    {
+      name: 'amena-frontend',
+      cwd: './frontend',
+      script: 'npm',
+      args: 'run start -- --hostname 127.0.0.1 --port 3000',
+      exec_interpreter: 'none',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      time: true,
+      max_restarts: 10,
+      max_memory_restart: '1G',
+      env: {
+        NODE_ENV: 'production',
+        HOSTNAME: '127.0.0.1',
+        PORT: 3000,
+      },
+    },
+  ],
+};
