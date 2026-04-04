@@ -14,7 +14,8 @@ Ce document décrit une mise en production simple et stable du projet **AMENA Co
 
 ## Architecture recommandée
 
-- **Nginx** expose le site sur `https://amena-consulting.com`
+- **Nginx** expose le site canonique sur `https://www.amena-consulting.com`
+- **Nginx** redirige `https://amena-consulting.com` vers `https://www.amena-consulting.com`
 - **Nginx** expose l’API sur `https://api.amena-consulting.com`
 - **Frontend Next.js** écoute en local sur `127.0.0.1:3000`
 - **Backend Express** écoute en local sur `127.0.0.1:5000`
@@ -50,7 +51,7 @@ DB_PASSWORD=mot_de_passe_mysql_fort
 DB_SYNC=true
 JWT_SECRET=remplacer-par-une-cle-secrete-longue-et-unique
 JWT_EXPIRES_IN=1d
-CORS_ORIGIN=https://amena-consulting.com
+CORS_ORIGIN=https://www.amena-consulting.com
 SEED_ADMIN_NAME=Admin Amena Consulting
 SEED_ADMIN_EMAIL=admin@amena-consulting.com
 SEED_ADMIN_PASSWORD=mot-de-passe-admin-fort
@@ -64,7 +65,7 @@ Créer `frontend/.env.production` ou définir ces variables dans l’environneme
 ```env
 API_BASE_URL=https://api.amena-consulting.com/api
 NEXT_PUBLIC_API_URL=https://api.amena-consulting.com/api
-NEXT_PUBLIC_SITE_URL=https://amena-consulting.com
+NEXT_PUBLIC_SITE_URL=https://www.amena-consulting.com
 ```
 
 ## 3. Préparer MySQL
@@ -72,7 +73,7 @@ NEXT_PUBLIC_SITE_URL=https://amena-consulting.com
 Créer la base et l’utilisateur avant le premier démarrage :
 
 ```sql
-CREATE DATABASE amena_consulting CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE amena_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER 'amena_user'@'localhost' IDENTIFIED BY 'mot_de_passe_mysql_fort';
 GRANT ALL PRIVILEGES ON amena_consulting.* TO 'amena_user'@'localhost';
 FLUSH PRIVILEGES;
@@ -149,8 +150,8 @@ Activer ensuite le SSL avec Certbot.
 ## 10. Vérifications après déploiement
 
 - `curl http://127.0.0.1:5000/health`
-- ouvrir `https://amena-consulting.com`
-- ouvrir `https://amena-consulting.com/admin/login`
+- ouvrir `https://www.amena-consulting.com`
+- ouvrir `https://www.amena-consulting.com/admin/login`
 - tester `https://api.amena-consulting.com/health`
 - vérifier qu’un login admin fonctionne
 - vérifier qu’une modification dans `/admin` est bien persistée en base
@@ -167,10 +168,10 @@ Activer ensuite le SSL avec Certbot.
    - en production, il faut être prudent avant toute évolution de schéma
 
 3. **CORS**
-   - `CORS_ORIGIN` doit pointer vers `https://amena-consulting.com`
+   - `CORS_ORIGIN` doit pointer vers `https://www.amena-consulting.com`
 
 4. **URLs publiques**
-   - `NEXT_PUBLIC_SITE_URL` doit être `https://amena-consulting.com`
+   - `NEXT_PUBLIC_SITE_URL` doit être `https://www.amena-consulting.com`
    - l’URL API recommandée est `https://api.amena-consulting.com/api`
 
 ## 12. Déploiement d’une nouvelle version
