@@ -34,6 +34,34 @@ function hasValidAdminSession(token) {
   return true;
 }
 
+function getForwardedHeader(request, name) {
+  const value = request.headers.get(name);
+  if (!value) {
+    return null;
+  }
+
+  return value.split(',')[0]?.trim() || null;
+}
+
+function buildProxyAwareUrl(request, pathname) {
+  const forwardedProto = getForwardedHeader(request, 'x-forwarded-proto');
+  const forwardedHost = getForwardedHeader(request, 'x-forwarded-host');
+  const forwardedPort = getForwardedHeader(request, 'x-forwarded-port');
+  const hostHeader = getForwardedHeader(request, 'host');
+  const protocol = forwardedProto || request.nextUrl.protocol.replace(':', '') || 'https';
+  const baseHost = forwardedHost || hostHeader || request.nextUrl.host;
+
+  if (!baseHost) {
+    return new URL(pathname, request.url);
+  }
+
+  const hostAlreadyHasPort = baseHost.includes(':');
+  const shouldAppendPort = forwardedPort && !hostAlreadyHasPort && !['80', '443'].includes(forwardedPort);
+  const finalHost = shouldAppendPort ? `${baseHost}:${forwardedPort}` : baseHost;
+
+  return new URL(`${protocol}://${finalHost}${pathname}`);
+}
+
 export function middleware(request) {
   const token = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
   const { pathname, search } = request.nextUrl;
@@ -45,7 +73,7 @@ export function middleware(request) {
 
   if (pathname === '/admin/login') {
     if (hasValidSession) {
-      return NextResponse.redirect(new URL('/admin', request.url));
+      return NextResponse.redirect(buildProxyAwareUrl(request, '/admin'));
     }
 
     const response = NextResponse.next();
@@ -57,7 +85,7 @@ export function middleware(request) {
   }
 
   if (!hasValidSession) {
-    const loginUrl = new URL('/admin/login', request.url);
+    const loginUrl = buildProxyAwareUrl(request, '/admin/login');
     loginUrl.searchParams.set('next', `${pathname}${search}`);
     const response = NextResponse.redirect(loginUrl);
     if (token) {
