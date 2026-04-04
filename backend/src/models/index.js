@@ -9,6 +9,7 @@ const TrainingRegistration = require('./trainingRegistration.model');
 const ContactMessage = require('./contactMessage.model');
 const CompanyProfile = require('./companyProfile.model');
 const SiteContent = require('./siteContent.model');
+const TeamMember = require('./teamMember.model');
 
 User.hasMany(Article, { foreignKey: 'authorId', as: 'articles' });
 Article.belongsTo(User, { foreignKey: 'authorId', as: 'author' });
@@ -50,4 +51,5 @@ module.exports = {
   ContactMessage,
   CompanyProfile,
   SiteContent,
+  TeamMember,
 };

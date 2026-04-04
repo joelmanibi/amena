@@ -10,13 +10,14 @@ import {
   Landmark,
   LayoutDashboard,
   MapPin,
-  Newspaper,
   ShieldCheck,
 } from 'lucide-react';
+import { ArticleCard } from '@/components/news/article-card';
 import { SectionHeader } from '@/components/section-header';
+import { TeamMembersSection } from '@/components/team/team-members-section';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getLatestArticles, getTrainings as getPublicTrainings } from '@/lib/api';
+import { getLatestArticles, getTeamMembers, getTrainings as getPublicTrainings } from '@/lib/api';
 import { getLocale } from '@/lib/locale';
 import { getSiteCopy } from '@/lib/site-copy';
 import { formatDate } from '@/lib/utils';
@@ -61,11 +62,14 @@ async function HomePage() {
     ...service,
     icon: serviceIcons[index] || Landmark,
   }));
-  const [latestArticles, trainingsResponse] = await Promise.all([
-    getLatestArticles(3),
+  const [latestArticles, trainingsResponse, teamMembers] = await Promise.all([
+    getLatestArticles(4),
     getPublicTrainings({ locale, limit: 50 }),
+    getTeamMembers(),
   ]);
   const featuredArticles = latestArticles.length ? latestArticles : fallbackArticles;
+  const leadArticle = featuredArticles[0] || null;
+  const sideArticles = featuredArticles.slice(1, 4);
   const featuredTrainings = getFeaturedTrainings(trainingsResponse.data || []);
 
   return (
@@ -150,6 +154,38 @@ async function HomePage() {
         </div>
       </section>
 
+      <section className="border-y border-brand-gray-modern/15 bg-white py-20">
+        <div className="container-shell">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-3xl">
+              <div className="mb-3 inline-flex items-center gap-3">
+                <span className="h-2.5 w-2.5 rounded-full bg-brand-red" />
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-black">{copy.news.featuredLabel}</p>
+              </div>
+              <h2 className="text-3xl font-semibold tracking-tight text-brand-black sm:text-4xl">{copy.home.insightsSection.title}</h2>
+              <p className="mt-4 text-base leading-7 text-brand-gray-dark sm:text-lg">
+                {copy.home.insightsSection.description}
+              </p>
+            </div>
+            <Link href="/news" className="inline-flex items-center gap-2 text-sm font-medium text-brand-red hover:text-brand-red-dark">
+              {copy.home.insightsSection.cta} <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {leadArticle ? (
+            <div className="mt-12 space-y-8">
+              <ArticleCard article={leadArticle} locale={locale} copy={copy.news} variant="featured" />
+
+              <div className="grid gap-6 border-t border-brand-gray-modern/15 pt-8 md:grid-cols-2 xl:grid-cols-3">
+                {sideArticles.map((article) => (
+                  <ArticleCard key={article.id || article.slug} article={article} locale={locale} copy={copy.news} variant="compact" />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
       <section className="py-20">
         <div className="container-shell">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -199,48 +235,6 @@ async function HomePage() {
             <Link href="/contact" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand-black hover:text-brand-red lg:mt-0">
               {copy.home.servicesSection.whyCta} <ArrowRight className="h-4 w-4" />
             </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-[#66666B] py-20 text-white">
-        <div className="container-shell">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <div className="max-w-3xl">
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-brand-red-light">{copy.home.insightsSection.eyebrow}</p>
-              <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{copy.home.insightsSection.title}</h2>
-              <p className="mt-4 text-base leading-7 text-white/70 sm:text-lg">
-                {copy.home.insightsSection.description}
-              </p>
-            </div>
-            <Link href="/news" className="inline-flex items-center gap-2 text-sm font-medium text-brand-red-light hover:text-white">
-              {copy.home.insightsSection.cta} <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
-            {featuredArticles.map((article) => (
-              <Card key={article.id || article.slug} className="card-corporate border-white/10 bg-white text-brand-black">
-                <CardHeader>
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-red/10 text-brand-red">
-                    <Newspaper className="h-6 w-6" />
-                  </div>
-                  <CardDescription className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-gray-dark">
-                    {article.categories?.[0]?.name || article.category || copy.home.insightsSection.defaultCategory}
-                  </CardDescription>
-                  <CardTitle className="text-brand-black">{article.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm leading-7 text-brand-gray-dark">{article.excerpt}</p>
-                  <div className="mt-6 flex items-center justify-between gap-4 text-sm text-brand-gray-dark">
-                    <span>{article.publishedAt ? formatDate(article.publishedAt, locale) : copy.home.insightsSection.latestInsight}</span>
-                    <Link href={`/news/${article.slug}`} className="inline-flex items-center gap-2 font-medium text-brand-red hover:text-brand-red-dark">
-                      {copy.home.insightsSection.readArticle} <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </div>
       </section>
@@ -310,6 +304,8 @@ async function HomePage() {
           </div>
         </div>
       </section>
+
+      <TeamMembersSection members={teamMembers} copy={copy.home.teamSection} />
     </>
   );
 }

@@ -102,6 +102,10 @@ async function listAdminContactMessages() {
   return adminRequest('/contact-messages', { query: { page: 1, limit: 100 } });
 }
 
+async function listAdminTeamMembers() {
+  return adminRequest('/team-members', { query: { includeInactive: 'true' } });
+}
+
 async function getAdminCompanyProfile() {
   return adminRequest('/company-profile');
 }
@@ -118,6 +122,7 @@ export {
   listAdminCategories,
   listAdminContactMessages,
   listAdminRegistrations,
+  listAdminTeamMembers,
   listAdminTrainings,
   loginAdmin,
 };

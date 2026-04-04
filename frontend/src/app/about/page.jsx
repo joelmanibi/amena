@@ -1,6 +1,8 @@
 import { CheckCircle2 } from 'lucide-react';
 import { SectionHeader } from '@/components/section-header';
+import { TeamMembersSection } from '@/components/team/team-members-section';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getTeamMembers } from '@/lib/api';
 import { getLocale } from '@/lib/locale';
 import { getSiteCopy } from '@/lib/site-copy';
 
@@ -16,7 +18,7 @@ export async function generateMetadata() {
 
 async function AboutPage() {
   const locale = await getLocale();
-  const copy = await getSiteCopy(locale);
+  const [copy, teamMembers] = await Promise.all([getSiteCopy(locale), getTeamMembers()]);
 
   return (
     <div className="page-shell bg-white">
@@ -46,6 +48,8 @@ async function AboutPage() {
           </CardContent>
         </Card>
       </div>
+
+      <TeamMembersSection members={teamMembers} copy={copy.about.teamSection} />
     </div>
   );
 }

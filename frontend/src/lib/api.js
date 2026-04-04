@@ -138,6 +138,15 @@ export async function getSiteContent() {
   }
 }
 
+export async function getTeamMembers() {
+  try {
+    const payload = await fetchJson('/team-members', { next: { revalidate: 120 } });
+    return payload.data || [];
+  } catch {
+    return [];
+  }
+}
+
 export async function getArticles({ page = 1, limit = 6, search, category, categoryId, ...options } = {}) {
   try {
     return await fetchJson('/articles', {

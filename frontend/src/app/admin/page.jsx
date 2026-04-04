@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, ClipboardList, GraduationCap, Mail, Newspaper, Tags } from 'lucide-react';
+import { ArrowRight, CalendarDays, ClipboardList, GraduationCap, Mail, Newspaper, Tags, Users2 } from 'lucide-react';
 import { updateCompanySettingsAction, updateSiteContentAction } from '@/app/admin/actions';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { SiteContentEditor } from '@/components/admin/site-content-editor';
@@ -13,6 +13,7 @@ import {
   listAdminCategories,
   listAdminContactMessages,
   listAdminRegistrations,
+  listAdminTeamMembers,
   listAdminTrainings,
 } from '@/lib/admin-api';
 import { formatDateTime, getRecordDate } from '@/lib/admin-format';
@@ -28,12 +29,13 @@ async function AdminDashboardPage({ searchParams }) {
   const companySettingsMessage = getSearchParamValue(resolvedSearchParams.message);
   const siteContentStatus = getSearchParamValue(resolvedSearchParams.siteContent);
   const siteContentMessage = getSearchParamValue(resolvedSearchParams.siteContentMessage);
-  const [articlesPayload, categoriesPayload, trainingsPayload, registrationsPayload, contactPayload, companyProfilePayload, siteCopyFr, siteCopyEn] = await Promise.all([
+  const [articlesPayload, categoriesPayload, trainingsPayload, registrationsPayload, contactPayload, teamMembersPayload, companyProfilePayload, siteCopyFr, siteCopyEn] = await Promise.all([
     listAdminArticles(),
     listAdminCategories(),
     listAdminTrainings(),
     listAdminRegistrations(),
     listAdminContactMessages(),
+    listAdminTeamMembers(),
     getAdminCompanyProfile(),
     getSiteCopy('fr'),
     getSiteCopy('en'),
@@ -44,6 +46,7 @@ async function AdminDashboardPage({ searchParams }) {
   const trainings = trainingsPayload.data || [];
   const registrations = registrationsPayload.data || [];
   const contactMessages = contactPayload.data || [];
+  const teamMembers = teamMembersPayload.data || [];
   const companyProfile = companyProfilePayload.data || {};
   const sessionsCount = trainings.reduce((total, training) => total + (training.sessions?.length || 0), 0);
   const companySettingsFeedback =
@@ -96,6 +99,13 @@ async function AdminDashboardPage({ searchParams }) {
       href: '/admin/trainings',
       icon: GraduationCap,
       tone: 'Catalogue des programmes',
+    },
+    {
+      label: 'Équipe',
+      value: teamMembersPayload.meta?.total || teamMembers.length,
+      href: '/admin/team',
+      icon: Users2,
+      tone: 'Présentation des membres',
     },
     {
       label: 'Sessions',

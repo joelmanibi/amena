@@ -1,10 +1,26 @@
 'use server';
 
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ADMIN_ROLES, clearAdminSession, setAdminSession } from '@/lib/admin-auth';
 import { adminRequest, loginAdmin } from '@/lib/admin-api';
 import { getSiteCopy } from '@/lib/site-copy';
+
+const ARTICLE_UPLOAD_DIRECTORY = path.join(process.cwd(), 'public', 'uploads', 'articles');
+const ARTICLE_UPLOAD_PUBLIC_PATH = '/uploads/articles';
+const TEAM_UPLOAD_DIRECTORY = path.join(process.cwd(), 'public', 'uploads', 'team');
+const TEAM_UPLOAD_PUBLIC_PATH = '/uploads/team';
+const IMAGE_MIME_TYPES = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/avif': 'avif',
+};
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 function requiredString(formData, key) {
   return String(formData.get(key) || '').trim();
@@ -132,12 +148,12 @@ export async function logoutAction() {
 }
 
 export async function createArticleAction(formData) {
-  await adminRequest('/articles', { method: 'POST', body: buildArticlePayload(formData) });
+  await adminRequest('/articles', { method: 'POST', body: await buildArticlePayload(formData) });
   refreshAdmin('/admin', '/admin/articles');
 }
 
 export async function updateArticleAction(formData) {
-  await adminRequest(`/articles/${requiredString(formData, 'id')}`, { method: 'PUT', body: buildArticlePayload(formData) });
+  await adminRequest(`/articles/${requiredString(formData, 'id')}`, { method: 'PUT', body: await buildArticlePayload(formData) });
   refreshAdmin('/admin', '/admin/articles');
 }
 
@@ -212,6 +228,30 @@ export async function deleteContactMessageAction(formData) {
   refreshAdmin('/admin', '/admin/contact-messages');
 }
 
+export async function createTeamMemberAction(formData) {
+  await adminRequest('/team-members', { method: 'POST', body: await buildTeamMemberPayload(formData, { photoRequired: true }) });
+  refreshAdmin('/admin', '/admin/team');
+  revalidatePath('/');
+  revalidatePath('/about');
+}
+
+export async function updateTeamMemberAction(formData) {
+  await adminRequest(`/team-members/${requiredString(formData, 'id')}`, {
+    method: 'PUT',
+    body: await buildTeamMemberPayload(formData),
+  });
+  refreshAdmin('/admin', '/admin/team');
+  revalidatePath('/');
+  revalidatePath('/about');
+}
+
+export async function deleteTeamMemberAction(formData) {
+  await adminRequest(`/team-members/${requiredString(formData, 'id')}`, { method: 'DELETE' });
+  refreshAdmin('/admin', '/admin/team');
+  revalidatePath('/');
+  revalidatePath('/about');
+}
+
 export async function updateCompanySettingsAction(formData) {
   try {
     await adminRequest('/company-profile', {
@@ -267,19 +307,101 @@ export async function updateSiteContentAction(formData) {
   redirect('/admin?siteContent=success&siteContentMessage=Le%20contenu%20%C3%A9ditorial%20a%20%C3%A9t%C3%A9%20mis%20%C3%A0%20jour%20avec%20succ%C3%A8s.');
 }
 
-function buildArticlePayload(formData) {
+async function buildArticlePayload(formData) {
   return {
     title: requiredString(formData, 'title'),
     slug: optionalString(formData, 'slug'),
     excerpt: optionalString(formData, 'excerpt'),
     content: requiredString(formData, 'content'),
-    featuredImageUrl: optionalString(formData, 'featuredImageUrl'),
+    featuredImageUrl: await resolveArticleFeaturedImageUrl(formData),
     status: requiredString(formData, 'status') || 'draft',
     seoTitle: optionalString(formData, 'seoTitle'),
     seoDescription: optionalString(formData, 'seoDescription'),
     publishedAt: isoDateValue(formData, 'publishedAt'),
     categoryIds: numberArray(formData, 'categoryIds'),
   };
+}
+
+async function resolveArticleFeaturedImageUrl(formData) {
+  const uploadedImageUrl = await uploadArticleImage(formData.get('featuredImageFile'));
+  if (uploadedImageUrl) {
+    return uploadedImageUrl;
+  }
+
+  return optionalString(formData, 'featuredImageUrl');
+}
+
+async function uploadArticleImage(file) {
+  return uploadImageFile(file, {
+    uploadDirectory: ARTICLE_UPLOAD_DIRECTORY,
+    publicPath: ARTICLE_UPLOAD_PUBLIC_PATH,
+  });
+}
+
+async function buildTeamMemberPayload(formData, { photoRequired = false } = {}) {
+  return {
+    firstName: requiredString(formData, 'firstName'),
+    lastName: requiredString(formData, 'lastName'),
+    photoUrl: await resolveTeamMemberPhotoUrl(formData, { photoRequired }),
+    jobTitle: requiredString(formData, 'jobTitle'),
+    shortDescription: requiredString(formData, 'shortDescription'),
+    sortOrder: numberValue(formData, 'sortOrder') ?? 0,
+    isActive: booleanValue(formData, 'isActive'),
+  };
+}
+
+async function resolveTeamMemberPhotoUrl(formData, { photoRequired = false } = {}) {
+  const uploadedImageUrl = await uploadTeamMemberPhoto(formData.get('photoFile'));
+  if (uploadedImageUrl) {
+    return uploadedImageUrl;
+  }
+
+  const existingPhotoUrl = optionalString(formData, 'existingPhotoUrl');
+  if (existingPhotoUrl) {
+    return existingPhotoUrl;
+  }
+
+  if (photoRequired) {
+    throw new Error('Veuillez uploader une photo pour le membre de l’équipe.');
+  }
+
+  return undefined;
+}
+
+async function uploadTeamMemberPhoto(file) {
+  return uploadImageFile(file, {
+    uploadDirectory: TEAM_UPLOAD_DIRECTORY,
+    publicPath: TEAM_UPLOAD_PUBLIC_PATH,
+  });
+}
+
+async function uploadImageFile(file, { uploadDirectory, publicPath }) {
+  if (!file || typeof file !== 'object' || typeof file.arrayBuffer !== 'function') {
+    return undefined;
+  }
+
+  if (!file.size) {
+    return undefined;
+  }
+
+  const extension = IMAGE_MIME_TYPES[file.type];
+  if (!extension) {
+    throw new Error('Le fichier image doit être au format JPG, PNG, WEBP, GIF ou AVIF.');
+  }
+
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error('L’image ne doit pas dépasser 5 MB.');
+  }
+
+  await mkdir(uploadDirectory, { recursive: true });
+
+  const fileName = `${Date.now()}-${randomUUID()}.${extension}`;
+  const filePath = path.join(uploadDirectory, fileName);
+  const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+  await writeFile(filePath, fileBuffer);
+
+  return `${publicPath}/${fileName}`;
 }
 
 function buildCategoryPayload(formData) {

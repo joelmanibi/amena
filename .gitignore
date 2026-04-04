@@ -23,6 +23,7 @@ coverage/
 frontend/.next/
 frontend/out/
 backend/dist/
+frontend/public/uploads/
 
 # Logs
 *.log

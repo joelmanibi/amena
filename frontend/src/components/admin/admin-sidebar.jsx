@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Newspaper, Tags, GraduationCap, CalendarDays, ClipboardList, Mail, LogOut } from 'lucide-react';
+import { LayoutDashboard, Newspaper, Tags, GraduationCap, CalendarDays, ClipboardList, Mail, LogOut, Users2 } from 'lucide-react';
 import { BrandLogo } from '@/components/brand-logo';
 import { Button } from '@/components/ui/button';
 import { logoutAction } from '@/app/admin/actions';
@@ -13,6 +13,7 @@ const items = [
   { href: '/admin/articles', label: 'Articles', icon: Newspaper },
   { href: '/admin/categories', label: 'Catégories', icon: Tags },
   { href: '/admin/trainings', label: 'Formations', icon: GraduationCap },
+  { href: '/admin/team', label: 'Équipe', icon: Users2 },
   { href: '/admin/sessions', label: 'Sessions', icon: CalendarDays },
   { href: '/admin/registrations', label: 'Inscriptions', icon: ClipboardList },
   { href: '/admin/contact-messages', label: 'Messages de contact', icon: Mail },

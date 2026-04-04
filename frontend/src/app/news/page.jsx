@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { SectionHeader } from '@/components/section-header';
 import { ArticleCard } from '@/components/news/article-card';
 import { NewsCategoryFilter } from '@/components/news/news-category-filter';
@@ -86,21 +87,29 @@ async function NewsPage({ searchParams }) {
   const articles = articleResponse.data || [];
   const meta = articleResponse.meta || { page: 1, totalPages: 1, total: 0 };
   const totalArticles = meta.total || 0;
+  const featuredArticle = articles[0] || null;
+  const highlightedArticles = featuredArticle ? articles.slice(1, 4) : [];
+  const remainingArticles = featuredArticle ? articles.slice(4) : articles;
 
   return (
     <div className="bg-white py-20">
       <div className="container-shell space-y-12">
-        <section className="rounded-[2rem] border border-brand-gray-modern/20 bg-[radial-gradient(circle_at_top_left,rgba(241,106,111,0.12),transparent_35%),linear-gradient(180deg,#ffffff_0%,#fff8f8_100%)] p-8 shadow-sm lg:p-10">
-          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <section className="border-b border-brand-gray-modern/15 pb-10">
+          <div className="grid gap-8 xl:grid-cols-[1fr_auto] xl:items-end">
             <SectionHeader
               eyebrow={copy.news.title}
               title={copy.news.heroTitle}
               description={copy.news.heroDescription}
             />
-            <div className="rounded-2xl border border-brand-gray-modern/20 bg-white px-5 py-4 text-sm text-brand-gray-dark shadow-sm">
-              <p>
-                {copy.news.totalArticles}: <span className="font-semibold text-brand-black">{totalArticles}</span>
-              </p>
+            <div className="grid gap-4 sm:grid-cols-2 xl:min-w-[24rem]">
+              <div className="rounded-[1.25rem] border border-brand-gray-modern/15 bg-white px-5 py-4 text-sm text-brand-gray-dark">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red">{copy.news.totalArticles}</p>
+                <p className="mt-2 text-3xl font-semibold text-brand-black">{totalArticles}</p>
+              </div>
+              <div className="rounded-[1.25rem] border border-brand-gray-modern/15 bg-[#faf8f8] px-5 py-4 text-sm text-brand-gray-dark">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red">{copy.news.activeFilters}</p>
+                <p className="mt-2 text-sm leading-6 text-brand-black">{activeFilters.join(' · ') || copy.news.allCategories}</p>
+              </div>
             </div>
           </div>
         </section>
@@ -125,10 +134,47 @@ async function NewsPage({ searchParams }) {
         </div>
 
         {articles.length ? (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {articles.map((article) => (
-              <ArticleCard key={article.id || article.slug} article={article} locale={locale} copy={copy.news} />
-            ))}
+          <div className="space-y-12">
+            <section className="space-y-8">
+              <div className="flex items-center justify-between gap-4 border-b border-brand-gray-modern/15 pb-3">
+                <div className="inline-flex items-center gap-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-brand-red" />
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-black">{copy.news.featuredLabel}</p>
+                </div>
+                {featuredArticle ? (
+                  <Link href={`/news/${featuredArticle.slug}`} className="text-sm font-semibold text-brand-red transition-colors hover:text-brand-red-dark">
+                    {copy.news.readMore}
+                  </Link>
+                ) : null}
+              </div>
+
+              {featuredArticle ? <ArticleCard article={featuredArticle} locale={locale} copy={copy.news} variant="featured" /> : null}
+
+              {highlightedArticles.length ? (
+                <div className="grid gap-6 border-t border-brand-gray-modern/15 pt-8 md:grid-cols-2 xl:grid-cols-3">
+                  {highlightedArticles.map((article) => (
+                    <ArticleCard key={article.id || article.slug} article={article} locale={locale} copy={copy.news} variant="compact" />
+                  ))}
+                </div>
+              ) : null}
+            </section>
+
+            {remainingArticles.length ? (
+              <section className="space-y-6">
+                <div className="flex items-center justify-between gap-4 border-b border-brand-gray-modern/15 pb-3">
+                  <div className="inline-flex items-center gap-3">
+                    <span className="h-2.5 w-2.5 rounded-full bg-brand-red" />
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-black">{copy.news.latestLabel}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {remainingArticles.map((article) => (
+                    <ArticleCard key={article.id || article.slug} article={article} locale={locale} copy={copy.news} variant="list" />
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         ) : (
           <div className="rounded-[1.75rem] border border-dashed border-brand-gray-modern bg-white px-6 py-14 text-center">

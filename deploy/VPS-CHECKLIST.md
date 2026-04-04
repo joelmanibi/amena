@@ -101,15 +101,93 @@ npm run seed:admin
 sudo cp /opt/amena/deploy/nginx/amena-consulting.conf /etc/nginx/sites-available/amena-consulting
 sudo ln -s /etc/nginx/sites-available/amena-consulting /etc/nginx/sites-enabled/amena-consulting
 sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl reload nginx
 ```
 
 ## 12. Installer le SSL Certbot
 
+### Étape 12.1 — Vérifier les prérequis avant le certificat
+
+- vérifier que les DNS pointent bien vers `173.249.24.245`
+- vérifier que les ports `80` et `443` sont ouverts
+- vérifier que Nginx est installé : `nginx -v`
+- vérifier que Certbot n’est pas déjà présent : `certbot --version`
+
+### Étape 12.2 — Installer Certbot
+
 ```bash
 sudo apt-get install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d amena-consulting.com -d www.amena-consulting.com -d api.amena-consulting.com
+```
+
+### Étape 12.3 — Arrêter Nginx temporairement
+
+Le fichier Nginx de production référence déjà les chemins du certificat SSL. Tant que le certificat n’existe pas encore, `nginx -t` peut échouer. Le plus simple est donc :
+
+```bash
+sudo systemctl stop nginx
+```
+
+### Étape 12.4 — Générer le certificat Let’s Encrypt
+
+Remplacer `admin@amena-consulting.com` par ton vrai email de réception des alertes SSL.
+
+```bash
+sudo certbot certonly --standalone \
+  -d amena-consulting.com \
+  -d www.amena-consulting.com \
+  -d api.amena-consulting.com \
+  --agree-tos \
+  -m admin@amena-consulting.com \
+  --no-eff-email
+```
+
+### Étape 12.5 — Vérifier que les certificats existent
+
+```bash
+sudo ls -la /etc/letsencrypt/live/amena-consulting.com/
+```
+
+Tu dois voir notamment :
+
+- `fullchain.pem`
+- `privkey.pem`
+
+### Étape 12.6 — Tester la configuration Nginx
+
+```bash
+sudo nginx -t
+```
+
+Si la configuration est valide, tu dois obtenir un message du type :
+
+- `syntax is ok`
+- `test is successful`
+
+### Étape 12.7 — Redémarrer Nginx
+
+```bash
+sudo systemctl start nginx
+sudo systemctl reload nginx
+```
+
+### Étape 12.8 — Vérifier que le HTTPS répond bien
+
+```bash
+curl -I https://www.amena-consulting.com
+curl -I https://api.amena-consulting.com/health
+```
+
+### Étape 12.9 — Vérifier le renouvellement automatique
+
+```bash
+sudo systemctl status certbot.timer
+sudo certbot renew --dry-run
+```
+
+Si `certbot.timer` n’est pas actif, activer le timer :
+
+```bash
+sudo systemctl enable certbot.timer
+sudo systemctl start certbot.timer
 ```
 
 ## 13. Vérifications finales

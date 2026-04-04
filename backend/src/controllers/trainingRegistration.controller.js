@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const asyncHandler = require('../utils/asyncHandler');
 const { getPagination, buildPaginationMeta } = require('../utils/pagination');
 const { TrainingProgram, TrainingSession, TrainingRegistration } = require('../models');
@@ -45,15 +46,49 @@ const getRegistrationById = asyncHandler(async (req, res) => {
 });
 
 const createRegistration = asyncHandler(async (req, res) => {
-  const session = await TrainingSession.findByPk(req.body.sessionId);
-  if (!session) {
+  const normalizedEmail = String(req.body.email || '').trim().toLowerCase();
+  const session = await TrainingSession.findByPk(req.body.sessionId, {
+    include: [{ model: TrainingProgram, as: 'program' }],
+  });
+
+  if (!session || !session.program || session.program.status !== 'published') {
     return res.status(404).json({ message: 'Training session not found.' });
+  }
+
+  if (session.status !== 'open') {
+    return res.status(409).json({ message: 'This training session is no longer open for registration.' });
+  }
+
+  if (session.registrationDeadline && new Date(session.registrationDeadline).getTime() < Date.now()) {
+    return res.status(409).json({ message: 'The registration deadline for this session has passed.' });
+  }
+
+  const existingRegistration = await TrainingRegistration.findOne({
+    where: {
+      sessionId: session.id,
+      email: normalizedEmail,
+    },
+  });
+
+  if (existingRegistration) {
+    return res.status(409).json({ message: 'A registration already exists for this email address on the selected session.' });
+  }
+
+  const activeRegistrationsCount = await TrainingRegistration.count({
+    where: {
+      sessionId: session.id,
+      status: { [Op.ne]: 'cancelled' },
+    },
+  });
+
+  if (session.capacity && activeRegistrationsCount >= session.capacity) {
+    return res.status(409).json({ message: 'This training session has reached full capacity.' });
   }
 
   const registration = await TrainingRegistration.create({
     sessionId: req.body.sessionId,
     fullName: req.body.fullName,
-    email: req.body.email,
+    email: normalizedEmail,
     phone: req.body.phone,
     company: req.body.company,
     jobTitle: req.body.jobTitle,

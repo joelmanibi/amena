@@ -55,6 +55,12 @@ async function ArticlesAdminPage() {
                   <Input name="featuredImageUrl" type="url" placeholder="https://..." />
                 </AdminField>
 
+                <AdminField label="Uploader une image" description="Si tu ajoutes un fichier, il sera utilisé à la place de l’URL ci-contre.">
+                  <Input name="featuredImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" />
+                </AdminField>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
                 <AdminField label="Statut">
                   <Select name="status" defaultValue="draft">
                     {articleStatuses.map((status) => (
@@ -137,6 +143,19 @@ async function ArticlesAdminPage() {
                     <AdminField label="URL de l’image mise en avant">
                       <Input name="featuredImageUrl" type="url" defaultValue={article.featuredImageUrl || ''} />
                     </AdminField>
+
+                    <AdminField label="Remplacer par un fichier" description="Si tu uploades une nouvelle image, elle remplacera l’URL actuelle.">
+                      <Input name="featuredImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" />
+                    </AdminField>
+                  </div>
+
+                  {article.featuredImageUrl ? (
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                      <img src={article.featuredImageUrl} alt={article.title} className="h-48 w-full object-cover" />
+                    </div>
+                  ) : null}
+
+                  <div className="grid gap-4 md:grid-cols-2">
                     <AdminField label="Statut">
                       <Select name="status" defaultValue={article.status}>
                         {articleStatuses.map((status) => (
