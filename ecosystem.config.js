@@ -15,6 +15,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 5000,
+        BACKEND_PUBLIC_URL: 'https://api.amena-consulting.com',
       },
     },
     {

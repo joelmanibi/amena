@@ -1,18 +1,11 @@
 'use server';
 
-import { mkdir, writeFile } from 'node:fs/promises';
-import path from 'node:path';
-import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ADMIN_ROLES, clearAdminSession, setAdminSession } from '@/lib/admin-auth';
 import { adminRequest, loginAdmin } from '@/lib/admin-api';
 import { getSiteCopy } from '@/lib/site-copy';
 
-const ARTICLE_UPLOAD_DIRECTORY = path.join(process.cwd(), 'public', 'uploads', 'articles');
-const ARTICLE_UPLOAD_PUBLIC_PATH = '/uploads/articles';
-const TEAM_UPLOAD_DIRECTORY = path.join(process.cwd(), 'public', 'uploads', 'team');
-const TEAM_UPLOAD_PUBLIC_PATH = '/uploads/team';
 const IMAGE_MIME_TYPES = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -332,10 +325,7 @@ async function resolveArticleFeaturedImageUrl(formData) {
 }
 
 async function uploadArticleImage(file) {
-  return uploadImageFile(file, {
-    uploadDirectory: ARTICLE_UPLOAD_DIRECTORY,
-    publicPath: ARTICLE_UPLOAD_PUBLIC_PATH,
-  });
+  return uploadImageFile(file, { scope: 'articles' });
 }
 
 async function buildTeamMemberPayload(formData, { photoRequired = false } = {}) {
@@ -369,13 +359,10 @@ async function resolveTeamMemberPhotoUrl(formData, { photoRequired = false } = {
 }
 
 async function uploadTeamMemberPhoto(file) {
-  return uploadImageFile(file, {
-    uploadDirectory: TEAM_UPLOAD_DIRECTORY,
-    publicPath: TEAM_UPLOAD_PUBLIC_PATH,
-  });
+  return uploadImageFile(file, { scope: 'team' });
 }
 
-async function uploadImageFile(file, { uploadDirectory, publicPath }) {
+async function uploadImageFile(file, { scope }) {
   if (!file || typeof file !== 'object' || typeof file.arrayBuffer !== 'function') {
     return undefined;
   }
@@ -384,8 +371,7 @@ async function uploadImageFile(file, { uploadDirectory, publicPath }) {
     return undefined;
   }
 
-  const extension = IMAGE_MIME_TYPES[file.type];
-  if (!extension) {
+  if (!IMAGE_MIME_TYPES[file.type]) {
     throw new Error('Le fichier image doit être au format JPG, PNG, WEBP, GIF ou AVIF.');
   }
 
@@ -393,15 +379,17 @@ async function uploadImageFile(file, { uploadDirectory, publicPath }) {
     throw new Error('L’image ne doit pas dépasser 5 MB.');
   }
 
-  await mkdir(uploadDirectory, { recursive: true });
-
-  const fileName = `${Date.now()}-${randomUUID()}.${extension}`;
-  const filePath = path.join(uploadDirectory, fileName);
   const fileBuffer = Buffer.from(await file.arrayBuffer());
+  const payload = await adminRequest('/uploads/images', {
+    method: 'POST',
+    body: {
+      scope,
+      mimeType: file.type,
+      contentBase64: fileBuffer.toString('base64'),
+    },
+  });
 
-  await writeFile(filePath, fileBuffer);
-
-  return `${publicPath}/${fileName}`;
+  return payload?.data?.path;
 }
 
 function buildCategoryPayload(formData) {

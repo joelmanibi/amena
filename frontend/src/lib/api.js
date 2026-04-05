@@ -1,6 +1,7 @@
 import { getIntlLocale, normalizeLocale } from '@/lib/i18n';
 
 const API_BASE_URL = (process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+const ASSET_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 
 const trainingDeliveryModeLabels = {
   fr: {
@@ -26,6 +27,19 @@ function buildUrl(path, query = {}) {
 
   const queryString = params.toString();
   return `${API_BASE_URL}${path}${queryString ? `?${queryString}` : ''}`;
+}
+
+function resolveAssetUrl(assetUrl) {
+  if (!assetUrl) {
+    return assetUrl;
+  }
+
+  if (/^https?:\/\//i.test(assetUrl)) {
+    return assetUrl;
+  }
+
+  const normalizedPath = assetUrl.startsWith('/') ? assetUrl : `/${assetUrl}`;
+  return `${ASSET_BASE_URL}${normalizedPath}`;
 }
 
 async function fetchJson(path, { query, ...options } = {}) {
@@ -111,6 +125,28 @@ function normalizeTraining(training, locale = 'fr') {
   };
 }
 
+function normalizeArticle(article) {
+  if (!article) {
+    return null;
+  }
+
+  return {
+    ...article,
+    featuredImageUrl: resolveAssetUrl(article.featuredImageUrl),
+  };
+}
+
+function normalizeTeamMember(teamMember) {
+  if (!teamMember) {
+    return null;
+  }
+
+  return {
+    ...teamMember,
+    photoUrl: resolveAssetUrl(teamMember.photoUrl),
+  };
+}
+
 export async function getArticleCategories() {
   try {
     const payload = await fetchJson('/categories', { next: { revalidate: 300 } });
@@ -141,7 +177,7 @@ export async function getSiteContent() {
 export async function getTeamMembers() {
   try {
     const payload = await fetchJson('/team-members', { next: { revalidate: 120 } });
-    return payload.data || [];
+    return (payload.data || []).map(normalizeTeamMember).filter(Boolean);
   } catch {
     return [];
   }
@@ -149,11 +185,16 @@ export async function getTeamMembers() {
 
 export async function getArticles({ page = 1, limit = 6, search, category, categoryId, ...options } = {}) {
   try {
-    return await fetchJson('/articles', {
+    const payload = await fetchJson('/articles', {
       query: { page, limit, search, category, categoryId },
       cache: 'no-store',
       ...options,
     });
+
+    return {
+      ...payload,
+      data: (payload.data || []).map(normalizeArticle).filter(Boolean),
+    };
   } catch {
     return {
       data: [],
@@ -201,7 +242,7 @@ export async function getAllArticles({ limit = 100 } = {}) {
 export async function getArticleBySlug(slug) {
   try {
     const payload = await fetchJson(`/articles/${slug}`, { next: { revalidate: 120 } });
-    return payload.data || null;
+    return normalizeArticle(payload.data || null);
   } catch (error) {
     if (error.status === 404) {
       return null;

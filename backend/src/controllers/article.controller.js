@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const asyncHandler = require('../utils/asyncHandler');
 const slugify = require('../utils/slugify');
 const { getPagination, buildPaginationMeta } = require('../utils/pagination');
+const { resolvePublicAssetUrl } = require('../utils/media');
 const { Article, Category, User } = require('../models');
 
 const articleInclude = [
@@ -10,6 +11,14 @@ const articleInclude = [
 ];
 
 const adminRoles = ['SUPER_ADMIN', 'ADMIN', 'EDITOR'];
+
+function serializeArticle(article) {
+  const payload = article?.toJSON ? article.toJSON() : article;
+  return {
+    ...payload,
+    featuredImageUrl: resolvePublicAssetUrl(payload?.featuredImageUrl),
+  };
+}
 
 const getArticles = asyncHandler(async (req, res) => {
   const { page, limit, search, status, categoryId, category, categorySlug } = req.query;
@@ -62,7 +71,7 @@ const getArticles = asyncHandler(async (req, res) => {
   });
 
   res.status(200).json({
-    data: rows,
+    data: rows.map(serializeArticle),
     meta: buildPaginationMeta(count, pagination.page, pagination.limit),
   });
 });
@@ -77,7 +86,7 @@ const getArticleBySlug = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Article not found.' });
   }
 
-  res.status(200).json({ data: article });
+  res.status(200).json({ data: serializeArticle(article) });
 });
 
 const createArticle = asyncHandler(async (req, res) => {
@@ -101,7 +110,7 @@ const createArticle = asyncHandler(async (req, res) => {
   }
 
   const created = await Article.findByPk(article.id, { include: articleInclude });
-  res.status(201).json({ message: 'Article created successfully.', data: created });
+  res.status(201).json({ message: 'Article created successfully.', data: serializeArticle(created) });
 });
 
 const updateArticle = asyncHandler(async (req, res) => {
@@ -132,7 +141,7 @@ const updateArticle = asyncHandler(async (req, res) => {
   }
 
   const updated = await Article.findByPk(article.id, { include: articleInclude });
-  res.status(200).json({ message: 'Article updated successfully.', data: updated });
+  res.status(200).json({ message: 'Article updated successfully.', data: serializeArticle(updated) });
 });
 
 const deleteArticle = asyncHandler(async (req, res) => {

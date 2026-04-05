@@ -1,10 +1,19 @@
 const asyncHandler = require('../utils/asyncHandler');
+const { resolvePublicAssetUrl } = require('../utils/media');
 const { TeamMember } = require('../models');
 
 const adminRoles = ['SUPER_ADMIN', 'ADMIN', 'EDITOR'];
 
 function hasOwnProperty(source, key) {
   return Object.prototype.hasOwnProperty.call(source, key);
+}
+
+function serializeTeamMember(teamMember) {
+  const payload = teamMember?.toJSON ? teamMember.toJSON() : teamMember;
+  return {
+    ...payload,
+    photoUrl: resolvePublicAssetUrl(payload?.photoUrl),
+  };
 }
 
 const getTeamMembers = asyncHandler(async (req, res) => {
@@ -26,7 +35,7 @@ const getTeamMembers = asyncHandler(async (req, res) => {
   });
 
   res.status(200).json({
-    data: teamMembers,
+    data: teamMembers.map(serializeTeamMember),
     meta: {
       total: teamMembers.length,
     },
@@ -46,7 +55,7 @@ const createTeamMember = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     message: 'Team member created successfully.',
-    data: teamMember,
+    data: serializeTeamMember(teamMember),
   });
 });
 
@@ -69,7 +78,7 @@ const updateTeamMember = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     message: 'Team member updated successfully.',
-    data: teamMember,
+    data: serializeTeamMember(teamMember),
   });
 });
 

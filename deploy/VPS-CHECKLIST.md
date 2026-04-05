@@ -58,6 +58,7 @@ cd /opt/amena
 - configurer les variables MySQL
 - configurer `JWT_SECRET`
 - configurer `CORS_ORIGIN=https://www.amena-consulting.com`
+- configurer `BACKEND_PUBLIC_URL=https://api.amena-consulting.com`
 
 ### Frontend : `frontend/.env.production`
 
@@ -201,6 +202,7 @@ sudo systemctl start certbot.timer
 - ouvrir `https://api.amena-consulting.com/health`
 - tester un login admin
 - tester une modification de contenu depuis `/admin`
+- vérifier qu’un upload image est accessible via `https://api.amena-consulting.com/uploads/...`
 
 ## 14. Déploiement d’une mise à jour
 

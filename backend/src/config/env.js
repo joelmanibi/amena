@@ -14,6 +14,9 @@ module.exports = {
   dbSync: true,
   jwtSecret: process.env.JWT_SECRET || 'change-this-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000'
+  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  backendPublicUrl: (process.env.BACKEND_PUBLIC_URL || process.env.API_PUBLIC_BASE_URL || process.env.PUBLIC_API_BASE_URL || process.env.API_BASE_URL || `http://localhost:${Number(process.env.PORT || 5000)}`)
+    .replace(/\/$/, '')
+    .replace(/\/api$/, ''),
 
 };
