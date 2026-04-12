@@ -39,7 +39,7 @@ function TeamMembersSection({ members = [], copy }) {
   const activeMember = members[activeIndex] || members[0];
 
   return (
-    <section className="border-t border-brand-gray-modern/15 bg-[linear-gradient(180deg,#ffffff_0%,#fff8f8_100%)] py-20">
+    <section className="border-t border-brand-gray-modern/15 bg-[radial-gradient(circle_at_top_left,rgba(196,22,28,0.08),transparent_30%),linear-gradient(180deg,rgba(196,22,28,0.05)_0%,rgba(255,248,248,0.96)_52%,#ffffff_100%)] py-20">
       <div className="container-shell">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeader eyebrow={copy.eyebrow} title={copy.title} description={copy.description} />

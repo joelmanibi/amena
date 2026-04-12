@@ -186,7 +186,7 @@ async function HomePage() {
         </div>
       </section>
 
-      <section className="py-20">
+      <section className="bg-[radial-gradient(circle_at_top_left,rgba(196,22,28,0.08),transparent_30%),linear-gradient(180deg,rgba(196,22,28,0.05)_0%,rgba(255,255,255,0.96)_52%,#ffffff_100%)] py-20">
         <div className="container-shell">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <SectionHeader
