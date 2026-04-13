@@ -1009,4 +1009,3 @@ const getSiteContent = cache(async (locale = DEFAULT_LOCALE) => {
 export async function getSiteCopy(locale) {
   return getSiteContent(locale);
 }
-</toolcall_result>
