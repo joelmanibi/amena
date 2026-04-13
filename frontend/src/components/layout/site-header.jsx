@@ -65,26 +65,48 @@ function SiteHeader({ locale, copy, navigation, company, languageCopy }) {
       </div>
 
       {open ? (
-        <div className="border-t border-brand-gray-modern/20 bg-white md:hidden">
-          <div className="container-shell flex flex-col gap-4 py-5">
-            {navigation.map((item) => (
+        <div className="fixed inset-0 top-20 z-40 bg-white md:hidden animate-in fade-in slide-in-from-top-5 duration-300">
+          <div className="container-shell flex flex-col gap-6 py-10">
+            <div className="flex flex-col gap-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gray-dark/50 px-2">Navigation</p>
+              {navigation.map((item, index) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    'group flex items-center justify-between rounded-2xl p-4 text-lg font-bold transition-all active:scale-95',
+                    isActive(item.href) 
+                      ? 'bg-brand-red/5 text-brand-red' 
+                      : 'text-brand-black hover:bg-brand-gray-light/50'
+                  )}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  {item.label}
+                  <div className={cn(
+                    'h-2 w-2 rounded-full bg-brand-red transition-all duration-300',
+                    isActive(item.href) ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+                  )} />
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-4 flex flex-col gap-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gray-dark/50 px-2">Préférences</p>
+              <div className="rounded-2xl border border-brand-gray-modern/20 p-4">
+                <LanguageSwitcher locale={locale} copy={languageCopy} className="justify-between" onNavigate={() => setOpen(false)} />
+              </div>
+            </div>
+
+            <div className="mt-auto pb-10">
               <Link
-                key={item.href}
-                href={item.href}
+                href="/contact"
                 onClick={() => setOpen(false)}
-                className={cn('text-sm font-medium text-brand-gray-dark', isActive(item.href) && 'text-brand-red')}
+                className="btn-brand-primary flex w-full items-center justify-center gap-3 py-5 text-lg"
               >
-                {item.label}
+                {copy.consultationCta}
               </Link>
-            ))}
-            <LanguageSwitcher locale={locale} copy={languageCopy} className="justify-between" onNavigate={() => setOpen(false)} />
-            <Link
-              href="/contact"
-              onClick={() => setOpen(false)}
-              className="btn-brand-primary text-center"
-            >
-              {copy.consultationCta}
-            </Link>
+            </div>
           </div>
         </div>
       ) : null}
