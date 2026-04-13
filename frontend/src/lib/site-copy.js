@@ -994,15 +994,15 @@ function mergeSiteCopy(fallbackValue, overrideValue) {
 }
 
 const getSiteContent = cache(async (locale = DEFAULT_LOCALE) => {
+  const localeKey = normalizeLocale(locale);
+  const baseCopy = siteCopy[localeKey] || siteCopy[DEFAULT_LOCALE];
+
   try {
     const data = await fetchSiteContent(locale);
-    const localeKey = normalizeLocale(locale);
-    const baseCopy = siteCopy[localeKey] || siteCopy[DEFAULT_LOCALE];
-
-    return mergeSiteCopy(baseCopy, data);
+    return mergeSiteCopy(baseCopy, data || {});
   } catch (error) {
     console.error('Error fetching site content:', error);
-    return siteCopy[normalizeLocale(locale)] || siteCopy[DEFAULT_LOCALE];
+    return baseCopy;
   }
 });
 
