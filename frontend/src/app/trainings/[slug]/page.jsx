@@ -13,6 +13,8 @@ import { getLocale } from '@/lib/locale';
 import { getSiteCopy } from '@/lib/site-copy';
 import { formatDate } from '@/lib/utils';
 
+const INTEREST_SESSION_CODE_PREFIX = 'interest-program-';
+
 function getSearchParamValue(value) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -21,17 +23,24 @@ function getSessionTimestamp(value) {
   return value ? new Date(value).getTime() : Number.MAX_SAFE_INTEGER;
 }
 
+function isInterestSession(session) {
+  return typeof session?.sessionCode === 'string' && session.sessionCode.startsWith(INTEREST_SESSION_CODE_PREFIX);
+}
+
 function getOpenSessions(sessions = []) {
   const now = Date.now();
 
   return sessions
+    .filter((session) => !isInterestSession(session))
     .filter((session) => session?.status === 'open')
     .filter((session) => !session.registrationDeadline || new Date(session.registrationDeadline).getTime() >= now)
     .sort((left, right) => getSessionTimestamp(left?.startDate) - getSessionTimestamp(right?.startDate));
 }
 
 function getSortedSessions(sessions = []) {
-  return [...sessions].sort((left, right) => getSessionTimestamp(left?.startDate) - getSessionTimestamp(right?.startDate));
+  return sessions
+    .filter((session) => !isInterestSession(session))
+    .sort((left, right) => getSessionTimestamp(left?.startDate) - getSessionTimestamp(right?.startDate));
 }
 
 function getRegistrationFeedback(searchParams, copy) {
@@ -123,10 +132,18 @@ async function TrainingDetailPage({ params, searchParams }) {
                 </div>
               ) : null}
 
-              {openSessions.length ? (
-                <form action={submitTrainingRegistrationAction} className="grid gap-5 sm:grid-cols-2">
-                  <input type="hidden" name="trainingSlug" value={training.slug} />
+              {!openSessions.length ? (
+                <div className="rounded-2xl border border-dashed border-brand-gray-modern/40 bg-brand-gray-modern/5 px-5 py-6">
+                  <p className="text-lg font-semibold text-brand-black">{copy.trainingsPage.noOpenSessionsTitle}</p>
+                  <p className="mt-2 text-sm leading-7 text-brand-gray-dark">{copy.trainingsPage.noOpenSessionsDescription}</p>
+                </div>
+              ) : null}
 
+              <form action={submitTrainingRegistrationAction} className="grid gap-5 sm:grid-cols-2">
+                <input type="hidden" name="trainingSlug" value={training.slug} />
+                {!openSessions.length ? <input type="hidden" name="programId" value={String(training.id)} /> : null}
+
+                {openSessions.length ? (
                   <div className="sm:col-span-2">
                     <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.sessionLabel}</label>
                     <Select name="sessionId" defaultValue={String(openSessions[0].id)} className="input-corporate h-12 rounded-xl border-brand-gray-modern bg-white text-brand-black">
@@ -137,46 +154,38 @@ async function TrainingDetailPage({ params, searchParams }) {
                       ))}
                     </Select>
                   </div>
+                ) : null}
 
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.fullNameLabel}</label>
-                    <Input name="fullName" required className="h-12" />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.emailLabel}</label>
-                    <Input name="email" type="email" required className="h-12" />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.phoneLabel}</label>
-                    <Input name="phone" className="h-12" />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.companyLabel}</label>
-                    <Input name="company" className="h-12" />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.jobTitleLabel}</label>
-                    <Input name="jobTitle" className="h-12" />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.messageLabel}</label>
-                    <Textarea name="message" placeholder={copy.trainingsPage.messagePlaceholder} className="min-h-[150px]" />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Button type="submit" className="btn-brand-primary h-12 px-6">
-                      {copy.trainingsPage.submitRegistration}
-                    </Button>
-                  </div>
-                </form>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-brand-gray-modern/40 bg-brand-gray-modern/5 px-5 py-6">
-                  <p className="text-lg font-semibold text-brand-black">{copy.trainingsPage.noOpenSessionsTitle}</p>
-                  <p className="mt-2 text-sm leading-7 text-brand-gray-dark">{copy.trainingsPage.noOpenSessionsDescription}</p>
-                  <Link href="/contact" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-red transition-colors hover:text-brand-red-dark">
-                    {copy.trainingsPage.registerInterest}
-                  </Link>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.fullNameLabel}</label>
+                  <Input name="fullName" required className="h-12" />
                 </div>
-              )}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.emailLabel}</label>
+                  <Input name="email" type="email" required className="h-12" />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.phoneLabel}</label>
+                  <Input name="phone" className="h-12" />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.companyLabel}</label>
+                  <Input name="company" className="h-12" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.jobTitleLabel}</label>
+                  <Input name="jobTitle" className="h-12" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-medium text-brand-black">{copy.trainingsPage.messageLabel}</label>
+                  <Textarea name="message" placeholder={copy.trainingsPage.messagePlaceholder} className="min-h-[150px]" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Button type="submit" className="btn-brand-primary h-12 px-6">
+                    {copy.trainingsPage.submitRegistration}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
         </div>

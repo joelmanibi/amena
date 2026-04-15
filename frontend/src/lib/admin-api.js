@@ -94,8 +94,17 @@ async function listAdminTrainings() {
   return adminRequest('/trainings', { query: { page: 1, limit: 50, status: 'all' } });
 }
 
-async function listAdminRegistrations() {
-  return adminRequest('/registrations', { query: { page: 1, limit: 100 } });
+async function listAdminRegistrations({ page = 1, limit = 20, status, sessionId, programId, search } = {}) {
+  return adminRequest('/registrations', {
+    query: {
+      page,
+      limit,
+      ...(status && status !== 'all' ? { status } : {}),
+      ...(sessionId && sessionId !== 'all' ? { sessionId } : {}),
+      ...(programId && programId !== 'all' ? { programId } : {}),
+      ...(search ? { search } : {}),
+    },
+  });
 }
 
 async function listAdminContactMessages() {

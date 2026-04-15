@@ -17,6 +17,10 @@ const sessionStatusLabels = {
   cancelled: 'Annulé',
 };
 
+function isInterestSession(session) {
+  return typeof session?.sessionCode === 'string' && session.sessionCode.startsWith('interest-program-');
+}
+
 async function SessionsAdminPage() {
   const payload = await listAdminTrainings();
   const trainings = payload.data || [];
@@ -28,6 +32,7 @@ async function SessionsAdminPage() {
         programId: training.id,
       }))
     )
+    .filter((session) => !isInterestSession(session))
     .sort((left, right) => new Date(left.startDate).getTime() - new Date(right.startDate).getTime());
 
   return (

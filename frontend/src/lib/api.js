@@ -97,6 +97,7 @@ function getTrainingPriceLabel(value, currency = 'USD', locale = 'fr') {
 
 function getNextSessionDate(sessions = []) {
   const sortableSessions = sessions
+    .filter((session) => !(typeof session?.sessionCode === 'string' && session.sessionCode.startsWith('interest-program-')))
     .filter((session) => session?.startDate && session.status !== 'cancelled')
     .sort((left, right) => new Date(left.startDate).getTime() - new Date(right.startDate).getTime());
 

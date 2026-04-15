@@ -32,8 +32,9 @@ function extractApiErrorMessage(payload, fallbackMessage) {
 
 export async function submitTrainingRegistrationAction(formData) {
   const trainingSlug = requiredString(formData, 'trainingSlug');
+  const sessionId = optionalString(formData, 'sessionId');
+  const programId = optionalString(formData, 'programId');
   const payload = {
-    sessionId: Number(requiredString(formData, 'sessionId')),
     fullName: requiredString(formData, 'fullName'),
     email: requiredString(formData, 'email'),
     phone: optionalString(formData, 'phone'),
@@ -41,6 +42,18 @@ export async function submitTrainingRegistrationAction(formData) {
     jobTitle: optionalString(formData, 'jobTitle'),
     message: optionalString(formData, 'message'),
   };
+
+  if (sessionId) {
+    payload.sessionId = Number(sessionId);
+  }
+
+  if (programId) {
+    payload.programId = Number(programId);
+  }
+
+  if (!payload.sessionId && !payload.programId) {
+    throw new Error('Aucune session ou formation cible n’a été fournie.');
+  }
 
   let redirectUrl = buildRedirectUrl(trainingSlug, 'success', 'Votre demande d’inscription a été envoyée avec succès.');
 

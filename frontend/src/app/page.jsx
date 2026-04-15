@@ -25,9 +25,14 @@ import { formatDate } from '@/lib/utils';
 
 const serviceIcons = [Landmark, BriefcaseBusiness, ChartColumnBig, ShieldCheck, Building2, LayoutDashboard];
 const FEATURED_TRAININGS_LIMIT = 3;
+const INTEREST_SESSION_CODE_PREFIX = 'interest-program-';
+
+function isInterestSession(session) {
+  return typeof session?.sessionCode === 'string' && session.sessionCode.startsWith(INTEREST_SESSION_CODE_PREFIX);
+}
 
 function hasActiveSession(training, now = Date.now()) {
-  const sessions = Array.isArray(training?.sessions) ? training.sessions : [];
+  const sessions = Array.isArray(training?.sessions) ? training.sessions.filter((session) => !isInterestSession(session)) : [];
 
   if (sessions.length) {
     return sessions.some((session) => {
@@ -51,7 +56,10 @@ function hasActiveSession(training, now = Date.now()) {
 }
 
 function getFeaturedTrainings(trainings = []) {
-  return trainings.filter((training) => hasActiveSession(training)).slice(0, FEATURED_TRAININGS_LIMIT);
+  const trainingsWithActiveSession = trainings.filter((training) => hasActiveSession(training));
+  const trainingsWithoutActiveSession = trainings.filter((training) => !hasActiveSession(training));
+
+  return [...trainingsWithActiveSession, ...trainingsWithoutActiveSession].slice(0, FEATURED_TRAININGS_LIMIT);
 }
 
 async function HomePage() {
@@ -390,7 +398,7 @@ async function HomePage() {
                   </div>
 
                   <div className="p-8 sm:p-10 bg-brand-gray-light/10 flex items-center justify-between gap-6">
-                    <p className="text-2xl sm:text-3xl font-black text-brand-black">{training.priceLabel}</p>
+                    <p className="text-xl sm:text-2xl font-black text-brand-black">{training.priceLabel}</p>
                     <Link href={`/trainings/${training.slug}`} className="group/btn inline-flex items-center gap-2 text-xs sm:text-sm font-black text-brand-red uppercase tracking-widest">
                       <span className="relative">
                         {copy.home.trainingsSection.viewProgram}
