@@ -18,8 +18,8 @@ function optionalString(formData, key) {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
-function buildRedirectUrl(trainingSlug, status, message) {
-  return `/trainings/${encodeURIComponent(trainingSlug)}?registration=${status}&message=${encodeURIComponent(message)}`;
+function buildRedirectUrl(status, message) {
+  return `/contact?submission=${status}&message=${encodeURIComponent(message)}`;
 }
 
 function extractApiErrorMessage(payload, fallbackMessage) {
@@ -30,35 +30,20 @@ function extractApiErrorMessage(payload, fallbackMessage) {
   return payload?.message || fallbackMessage;
 }
 
-export async function submitTrainingRegistrationAction(formData) {
-  const trainingSlug = requiredString(formData, 'trainingSlug');
-  const sessionId = optionalString(formData, 'sessionId');
-  const programId = optionalString(formData, 'programId');
+export async function submitContactAction(formData) {
   const payload = {
     fullName: requiredString(formData, 'fullName'),
     email: requiredString(formData, 'email'),
     phone: optionalString(formData, 'phone'),
     company: optionalString(formData, 'company'),
-    jobTitle: optionalString(formData, 'jobTitle'),
-    message: optionalString(formData, 'message'),
+    subject: requiredString(formData, 'subject'),
+    message: requiredString(formData, 'message'),
   };
 
-  if (sessionId) {
-    payload.sessionId = Number(sessionId);
-  }
-
-  if (programId) {
-    payload.programId = Number(programId);
-  }
-
-  if (!payload.sessionId && !payload.programId) {
-    throw new Error('Aucune session ou formation cible n’a été fournie.');
-  }
-
-  let redirectUrl = buildRedirectUrl(trainingSlug, 'success', 'Votre demande d’inscription a été envoyée avec succès.');
+  let redirectUrl = buildRedirectUrl('success', '');
 
   try {
-    const response = await fetch(`${API_BASE_URL}/registrations`, {
+    const response = await fetch(`${API_BASE_URL}/contact-messages`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -72,17 +57,16 @@ export async function submitTrainingRegistrationAction(formData) {
 
     if (!response.ok) {
       redirectUrl = buildRedirectUrl(
-        trainingSlug,
         'error',
-        extractApiErrorMessage(responseBody, 'Impossible d’envoyer votre inscription pour le moment.')
+        extractApiErrorMessage(responseBody, 'Impossible d’envoyer votre message pour le moment.')
       );
     }
   } catch (error) {
-    console.error('Training registration error:', error);
+    console.error('Contact form submission error:', error);
     const errorMessage = error.message === 'fetch failed' 
       ? 'Le serveur backend est injoignable. Vérifiez qu’il est bien démarré.' 
-      : (error?.message || 'Impossible de joindre le service d’inscription pour le moment.');
-    redirectUrl = buildRedirectUrl(trainingSlug, 'error', errorMessage);
+      : (error?.message || 'Impossible de joindre le service de contact pour le moment.');
+    redirectUrl = buildRedirectUrl('error', errorMessage);
   }
 
   redirect(redirectUrl);

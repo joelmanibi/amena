@@ -1,11 +1,40 @@
 import { Facebook, Globe, Instagram, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
+import { submitContactAction } from '@/app/contact/actions';
 import { SectionHeader } from '@/components/section-header';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { getCompanyContent } from '@/lib/company';
 import { getLocale } from '@/lib/locale';
 import { getSiteCopy } from '@/lib/site-copy';
+
+function getSearchParamValue(value) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function getSubmissionFeedback(searchParams, copy) {
+  const status = getSearchParamValue(searchParams?.submission);
+  const message = getSearchParamValue(searchParams?.message);
+
+  if (status === 'success') {
+    return {
+      title: copy.successTitle,
+      message: message || copy.successMessage,
+      className: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    };
+  }
+
+  if (status === 'error') {
+    return {
+      title: copy.errorTitle,
+      message: message || copy.fallbackError,
+      className: 'border-red-200 bg-red-50 text-red-800',
+    };
+  }
+
+  return null;
+}
 
 export async function generateMetadata() {
   const locale = await getLocale();
@@ -17,10 +46,11 @@ export async function generateMetadata() {
   };
 }
 
-async function ContactPage() {
+async function ContactPage({ searchParams }) {
   const locale = await getLocale();
   const copy = await getSiteCopy(locale);
   const company = await getCompanyContent(locale);
+  const feedback = getSubmissionFeedback((await searchParams) || {}, copy.contact);
   const contactItems = [
     company.address
       ? {
@@ -146,17 +176,36 @@ async function ContactPage() {
             <CardTitle className="text-brand-black">{copy.contact.formTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form className="grid gap-5 sm:grid-cols-2">
-              <div className="sm:col-span-1"><Input className="h-12" placeholder={copy.contact.placeholders.name} /></div>
-              <div className="sm:col-span-1"><Input className="h-12" type="email" placeholder={copy.contact.placeholders.email} /></div>
-              <div className="sm:col-span-1"><Input className="h-12" placeholder={copy.contact.placeholders.company} /></div>
-              <div className="sm:col-span-1"><Input className="h-12" placeholder={copy.contact.placeholders.phone} /></div>
-              <div className="sm:col-span-2"><Input className="h-12" placeholder={copy.contact.placeholders.subject} /></div>
-              <div className="sm:col-span-2"><Textarea placeholder={copy.contact.placeholders.message} /></div>
+            {feedback ? (
+              <div className={`mb-8 rounded-2xl border p-5 text-sm ${feedback.className}`}>
+                <p className="font-bold">{feedback.title}</p>
+                <p className="mt-1 opacity-90">{feedback.message}</p>
+              </div>
+            ) : null}
+
+            <form action={submitContactAction} className="grid gap-5 sm:grid-cols-2">
+              <div className="sm:col-span-1">
+                <Input name="fullName" className="h-12" placeholder={copy.contact.placeholders.name} required />
+              </div>
+              <div className="sm:col-span-1">
+                <Input name="email" className="h-12" type="email" placeholder={copy.contact.placeholders.email} required />
+              </div>
+              <div className="sm:col-span-1">
+                <Input name="company" className="h-12" placeholder={copy.contact.placeholders.company} />
+              </div>
+              <div className="sm:col-span-1">
+                <Input name="phone" className="h-12" placeholder={copy.contact.placeholders.phone} />
+              </div>
               <div className="sm:col-span-2">
-                <button type="submit" className="btn-brand-primary">
+                <Input name="subject" className="h-12" placeholder={copy.contact.placeholders.subject} required />
+              </div>
+              <div className="sm:col-span-2">
+                <Textarea name="message" placeholder={copy.contact.placeholders.message} required />
+              </div>
+              <div className="sm:col-span-2">
+                <Button type="submit" className="btn-brand-primary h-12 w-full sm:w-auto">
                   {copy.contact.submit}
-                </button>
+                </Button>
               </div>
             </form>
           </CardContent>
