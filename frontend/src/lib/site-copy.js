@@ -251,51 +251,52 @@ const siteCopy = {
       ],
       focusEyebrow: 'Axes prioritaires',
       focusAreas: [
-        {
-          title: 'Conseil',
-          description: 'Un accompagnement strategique pour la transformation financiere and performance of the company.',
-        },
-        {
-          title: 'Formation',
-          description: 'Learning experiences designed for real organizational needs.',
-        },
-      ],
-      servicesSection: {
-        eyebrow: 'Services',
-        title: 'Specialized expertise for financial transformation and corporate performance',
-        description: 'Each service is presented in a clear, premium format that values rigor, readability, and business expertise.',
-        cta: 'View all services',
-        itemCta: 'Explore service',
-        whyEyebrow: 'Why engage us',
-        whyDescription: 'Independent advisory, strong analytical rigor, and execution built around leadership alignment and business impact.',
-        whyCta: 'Discuss your priorities',
-        cards: [
-          {
-            title: 'Financial Audit',
-            description: 'Full diagnosis of the financial situation to identify risks, gaps, and levers for improvement.',
+            {
+              title: 'Conseil',
+              description: 'Un accompagnement stratégique pour la transformation financière et l’amélioration de la performance de l’entreprise.',
+            },
+            {
+              title: 'Formation',
+              description: 'Des expériences d’apprentissage conçues pour répondre aux enjeux réels des organisations.',
+            },
+          ],
+
+          servicesSection: {
+            eyebrow: 'Services',
+            title: 'Une expertise spécialisée au service de la transformation financière et de la performance des entreprises',
+            description: 'Chaque service est présenté dans un format clair et premium, valorisant la rigueur, la lisibilité et l’expertise métier.',
+            cta: 'Voir tous les services',
+            itemCta: 'Découvrir le service',
+            whyEyebrow: 'Pourquoi nous engager',
+            whyDescription: 'Un conseil indépendant, une forte rigueur analytique et une exécution alignée sur les priorités de direction et l’impact business.',
+            whyCta: 'Échanger sur vos priorités',
+            cards: [
+              {
+                title: 'Audit financier',
+                description: 'Diagnostic complet de la situation financière afin d’identifier les risques, les écarts et les leviers d’amélioration.',
+              },
+              {
+                title: 'Business plan',
+                description: 'Structuration de business plans clairs pour soutenir le financement, la stratégie et la prise de décision.',
+              },
+              {
+                title: 'Comptabilité & conformité fiscale',
+                description: 'Gestion comptable, obligations fiscales et production d’états financiers fiables pour un pilotage serein.',
+              },
+              {
+                title: 'Ingénierie entrepreneuriale',
+                description: 'Structuration juridique et financière, conformité réglementaire et accompagnement dans l’obtention d’agréments.',
+              },
+              {
+                title: 'Formation',
+                description: 'Programmes pratiques en management et pilotage pour renforcer les compétences des dirigeants et des équipes.',
+              },
+              {
+                title: 'Direction financière externalisée',
+                description: 'Pilotage financier à temps partiel avec tableaux de bord, indicateurs clés (KPI) et appui à la décision.',
+              },
+            ],
           },
-          {
-            title: 'Business plan',
-            description: 'Structuring clear business plans to support funding, strategy, and decision-making.',
-          },
-          {
-            title: 'Accounting & tax compliance',
-            description: 'Accounting management, tax obligations, and production of reliable financial statements for serene steering.',
-          },
-          {
-            title: 'Entrepreneurial engineering',
-            description: 'Legal and financial structuring, regulatory compliance, and support for obtaining approvals.',
-          },
-          {
-            title: 'Training',
-            description: 'Practical programs in management and steering to strengthen the skills of leaders and teams.',
-          },
-          {
-            title: 'Fractional CFO',
-            description: 'Part-time financial steering with dashboards, KPIs, and decision support.',
-          },
-        ],
-      },
       insightsSection: {
         eyebrow: 'Actualités',
         title: 'Les dernières analyses et actualités destinées aux décideurs financiers',
