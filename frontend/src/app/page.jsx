@@ -315,7 +315,7 @@ async function HomePage() {
                   </span>
                 </div>
                 <h3 className="text-3xl sm:text-5xl xl:text-6xl font-bold text-white mb-6 sm:mb-10 leading-[1.1]">
-                  Une expertise reconnue pour des décisions sereines
+                  Proven expertise for confident decision-making
                 </h3>
                 <p className="text-lg sm:text-xl lg:text-2xl leading-relaxed text-brand-gray-light/80 font-medium max-w-2xl mx-auto lg:mx-0">
                   {copy.home.servicesSection.whyDescription}
