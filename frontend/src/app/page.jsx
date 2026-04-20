@@ -207,7 +207,7 @@ async function HomePage() {
               <div className="flex flex-col gap-6 sm:gap-8 animate-in fade-in slide-in-from-right-10 duration-1000">
                 <div className="p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-brand-gray-light/5 border border-brand-gray-modern/20">
                   <h3 className="text-base sm:text-lg font-bold uppercase tracking-widest text-brand-black mb-6 sm:mb-8 pb-4 border-b border-brand-gray-modern/20">
-                    Analyses récentes
+                    Recent analyses
                   </h3>
                   <div className="space-y-6 sm:space-y-8">
                     {sideArticles.map((article) => (
@@ -315,7 +315,7 @@ async function HomePage() {
                   </span>
                 </div>
                 <h3 className="text-3xl sm:text-5xl xl:text-6xl font-bold text-white mb-6 sm:mb-10 leading-[1.1]">
-                  Proven expertise for confident decision-making
+                  Une expertise éprouvée pour prendre des décisions en toute confiance
                 </h3>
                 <p className="text-lg sm:text-xl lg:text-2xl leading-relaxed text-brand-gray-light/80 font-medium max-w-2xl mx-auto lg:mx-0">
                   {copy.home.servicesSection.whyDescription}
