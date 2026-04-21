@@ -66,7 +66,7 @@ function SiteHeader({ locale, copy, navigation, company, languageCopy }) {
 
       {open ? (
         <div className="fixed inset-0 top-20 z-40 bg-white md:hidden animate-in fade-in slide-in-from-top-5 duration-300">
-          <div className="container-shell flex flex-col gap-6 py-10">
+          <div className="container-shell flex flex-col bg-white gap-6 py-10">
             <div className="flex flex-col gap-4">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gray-dark/50 px-2">Navigation</p>
               {navigation.map((item, index) => (
